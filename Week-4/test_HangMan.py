@@ -31,4 +31,8 @@ class TestHangMam(unittest.TestCase):
         hangman.move('f')
         self.assertEqual(hangman.move('o'), 1)
         self.assertEqual(hangman.move("D"), 0)
+        hangman = HangMan("MAN")
+        self.assertEqual(hangman.move("Q"), 1)
+        self.assertEqual(hangman.move("w"), 1)
+        self.assertEqual(hangman.move("p"), 0)
 

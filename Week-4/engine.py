@@ -5,10 +5,9 @@ from HangMan import HangMan
 class Game:
     def __init__(self) -> None:
         self.__word_generator = WordGenerator()
-        self.__hangman = HangMan("FOOD")
-        # self.__hangman = HangMan(self.__word_generator.get_random_word())
+        # self.__hangman = HangMan("FOOD")
+        self.__hangman = HangMan(self.__word_generator.get_random_word())
         self.is_active = 1
-
 
     def print_rules(self) -> None:
         print("!!!HANGMAN!!!\n")
