@@ -7,7 +7,7 @@ class HangMan:
         self.__word_letters = {char for char in self.__word}
         self.__guessed_word = ["_" for _ in range(len(self.__word))]
         self.__guessed_letter = []
-        self.__chances_left = 2 # for testing will change it to (#unique letter)/2 
+        self.__chances_left = 2  #for testing will change it to (#unique letter)/2 
 
     def payer_guess_letter(self, new_letter: str) -> str:
         if new_letter in self.__guessed_letter:
