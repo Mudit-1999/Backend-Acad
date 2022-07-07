@@ -19,3 +19,16 @@ class TestHangMam(unittest.TestCase):
         self.assertEqual(hangman.payer_guess_letter("F"), "Ohh! You have already guessed the letter")
         self.assertEqual(hangman.payer_guess_letter("Q"), "Sorry! Wrong guess")
         self.assertEqual(hangman.payer_guess_letter("O"), "Wow! You have discovered 2 new letters")
+        self.assertEqual(hangman.payer_guess_letter("D"), "You Won!!")
+
+        hangman = HangMan("MAN")
+        self.assertEqual(hangman.payer_guess_letter("Q"), "Sorry! Wrong guess")
+        self.assertEqual(hangman.payer_guess_letter("W"), "Sorry! Wrong guess")
+        self.assertEqual(hangman.payer_guess_letter("P"), "Game Over\nThe word is MAN")
+
+    def test_move(self):
+        hangman = HangMan("FOOD")
+        hangman.move('f')
+        self.assertEqual(hangman.move('o'), 1)
+        self.assertEqual(hangman.move("D"), 0)
+

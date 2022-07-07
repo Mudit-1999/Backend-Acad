@@ -7,7 +7,7 @@ class HangMan:
         self.__word_letters = {char for char in self.__word}
         self.__guessed_word = ["_" for _ in range(len(self.__word))]
         self.__guessed_letter = []
-        self.__chances_left = 2  #for testing will change it to (#unique letter)/2 
+        self.__chances_left = 2  # for testing will change it to (#unique letter)/2
 
     def payer_guess_letter(self, new_letter: str) -> str:
         if new_letter in self.__guessed_letter:
@@ -23,7 +23,7 @@ class HangMan:
             return "Wow! You have discovered " + str(len(indices)) + " new " + ("letter" if len(indices)==1 else "letters")
         self.__chances_left -= 1
         if self.__chances_left == -1:
-            return "Game Over"
+            return f"Game Over\nThe word is {self.__word}"
         return "Sorry! Wrong guess"
 
     def render(self) -> str:
@@ -32,10 +32,6 @@ class HangMan:
     def move(self, new_letter: str) -> int:
         response = self.payer_guess_letter(new_letter.upper())
         print(response)
-        if response == "Game Over":
-            print(f"The word is {self.__word}")
-            return 1
-        elif response == "You Won!!":
-            return 1
-        print(self.render())
-        return 0
+        if response[0:9] == "Game Over" or response == "You Won!!":
+            return 0
+        return 1
