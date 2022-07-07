@@ -37,3 +37,16 @@ class TestHangMam(unittest.TestCase):
         self.assertEqual(hangman.move("w"), 1)
         self.assertEqual(hangman.move("p"), 0)
 
+    def test_give_hint(self) -> None:
+        hangman = HangMan("FOOD")
+        self.assertEqual(hangman.give_hint(), 1)
+        self.assertEqual(hangman.give_hint(), -1)
+
+        hangman = HangMan("FOOD")
+        hangman.move('f')
+        hangman.move('d')
+        self.assertEqual(hangman.give_hint(), 0)
+
+
+
+

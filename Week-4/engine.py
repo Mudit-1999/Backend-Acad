@@ -7,7 +7,7 @@ class Game:
         self.__word_generator = WordGenerator()
         self.__hangman=None
         self.is_active = 0
-        game.print_rules()
+        self.print_rules()
         self.start_a_new_game()
 
     @staticmethod
@@ -19,7 +19,8 @@ class Game:
         print("**************\n")
 
     def start_a_new_game(self):
-        self.__hangman = HangMan(self.__word_generator.get_random_word())
+        self.__hangman = HangMan("FOOD")
+        # self.__hangman = HangMan(self.__word_generator.get_random_word())
         self.is_active = 1
         print(self.__hangman.render())
 
@@ -27,6 +28,16 @@ class Game:
         self.is_active = self.__hangman.move(entered_letter)
         if self.is_active:
             print(self.__hangman.render())
+
+    def handle_hint(self):
+        response = self.__hangman.give_hint()
+        if response == 0:
+            print("Only 1 letter left to guess!!")
+        elif response == -1:
+            print("You can take only 1 hint")
+        else:
+            print("Yo! we have reveal few letter(s) for you")
+        print(self.__hangman.render())
 
     def player_input(self) -> None:
         while 1:
@@ -42,6 +53,8 @@ class Game:
                 self.start_a_new_game()
             elif player_input == "QUIT":
                 break
+            elif player_input == 'HINT':
+                self.handle_hint()
             elif self.is_active:
                 self.play(player_input[0])
 

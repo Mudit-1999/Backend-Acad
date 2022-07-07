@@ -4,23 +4,36 @@ import re
 class HangMan:
     def __init__(self, word: str = "BOLLYWOOD") -> None:
         self.__word = word.upper()
-        self.__word_letters = {char for char in self.__word}
+        self.__letter_left = {char for char in self.__word}
         self.__guessed_word = ["_" for _ in range(len(self.__word))]
         self.__guessed_letter = []
         self.__chances_left = 2  # for testing will change it to (#unique letter)/2
+        self.is_hint = 1
+
+    def give_hint(self) -> int:
+        if self.is_hint == 0:
+            return -1
+        self.is_hint = 0
+
+        if len(self.__letter_left) == 1:
+            return 0
+
+        self.payer_guess_letter(next(iter(self.__letter_left)))
+        return 1
 
     def payer_guess_letter(self, new_letter: str) -> str:
         if new_letter in self.__guessed_letter:
             return "Ohh! You have already guessed the letter"
         self.__guessed_letter.append(new_letter)
         indices = [i.start() for i in re.finditer(new_letter, self.__word)]
-        if new_letter in self.__word_letters:
+        if new_letter in self.__letter_left:
             for ind in indices:
                 self.__guessed_word[ind] = new_letter
-            self.__word_letters.remove(new_letter)
-            if len(self.__word_letters)==0:
+            self.__letter_left.remove(new_letter)
+            if len(self.__letter_left) == 0:
                 return "You Won!!"
-            return "Wow! You have discovered " + str(len(indices)) + " new " + ("letter" if len(indices)==1 else "letters")
+            return "Wow! You have discovered " + str(len(indices)) + " new " + \
+                   ("letter" if len(indices) == 1 else "letters")
         self.__chances_left -= 1
         if self.__chances_left == -1:
             return f"Game Over\nThe word is {self.__word}"
