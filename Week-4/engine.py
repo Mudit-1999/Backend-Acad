@@ -4,8 +4,8 @@ from HangMan import HangMan
 
 class Game:
     def __init__(self) -> None:
-        self.__word_generator = WordGenerator()
-        self.__hangman = None
+        self._word_generator = WordGenerator()
+        self._hangman = None
         self.is_active = 0
         self.print_rules()
         self.start_a_new_game()
@@ -14,31 +14,32 @@ class Game:
     def print_rules() -> None:
         print("!!!HANGMAN!!!\n")
         print("*******RULES*******")
-        print("Type Start for starting a new game: ")
-        print("Type Quit for quiting a new game: ")
+        print("Type Start for starting a new game ")
+        print("Type Quit for quiting a new game ")
+        print("Type Hint for taking a hint ")
         print("**************\n")
 
-    def start_a_new_game(self):
-        self.__hangman = HangMan(self.__word_generator.get_random_word())
+    def start_a_new_game(self) -> None:
+        self._hangman = HangMan(self._word_generator.get_random_word())
         self.is_active = 1
-        print(self.__hangman.render())
+        print(self._hangman.render())
 
-    def play(self, entered_letter):
-        self.is_active = self.__hangman.move(entered_letter)
+    def play(self, entered_letter) -> None:
+        self.is_active = self._hangman.move(entered_letter)
         if self.is_active:
-            print(self.__hangman.render())
+            print(self._hangman.render())
 
-    def handle_hint(self):
-        response = self.__hangman.give_hint()
+    def handle_hint(self) -> None:
+        response = self._hangman.give_hint()
         if response == 0:
             print("Only 1 letter left to guess!!")
         elif response == -1:
             print("You can take only 1 hint")
         else:
             print("Yo! we have reveal few letter(s) for you")
-        print(self.__hangman.render())
+        print(self._hangman.render())
 
-    def player_input(self) -> None:
+    def start_game(self) -> None:
         while 1:
             if self.is_active:
                 line = 'Please enter a letter to guess '
@@ -60,4 +61,4 @@ class Game:
 
 if __name__ == '__main__':
     game = Game()
-    game.player_input()
+    game.start_game()
