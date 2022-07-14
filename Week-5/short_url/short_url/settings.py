@@ -32,6 +32,16 @@ DEBUG = True
 ALLOWED_HOSTS = []
 
 
+DATABASES = {
+    "default": {
+        "ENGINE": "django.db.backends.dummy",
+    },
+}
+
+AUTHENTICATION_BACKENDS = (
+    'accounts.authenticate.MyBackend'
+)
+
 # Application definition
 
 INSTALLED_APPS = [
@@ -41,6 +51,9 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'accounts',
+    'short_url',
+    'rest_framework'
 ]
 
 MIDDLEWARE = [
