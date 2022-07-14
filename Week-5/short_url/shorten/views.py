@@ -8,10 +8,18 @@ from .models import Urls
 # Create your views here.
 def index(request):
     if request.method == 'POST':
-        my_hash = hashlib.sha1(request.POST['original_url'].encode('utf-8')).hexdigest()
-        Urls(url_id=my_hash[:10], original_url=request.POST['original_url']).save()
-        messages.info(request, "Your short url is http://127.0.0.1:8000/url/" + my_hash[:10])
-        return render(request, "index.html")
+        original_url = request.POST['original_url']
+        alias = request.POST['alias']
+        print(len(alias))
+        if len(alias) == 0:
+            alias = hashlib.sha1((original_url+"").encode('utf-8')).hexdigest()[:10]
+
+        if Urls.objects(url_id=alias).limit(1).count():
+            messages.info(request, "Alias already taken")
+            return redirect('/')
+        Urls(url_id=alias, original_url=original_url).save()
+        messages.info(request, "Your short url is http://127.0.0.1:8000/url/" + alias)
+        return redirect('/')
     else:
         return render(request, "index.html")
 
