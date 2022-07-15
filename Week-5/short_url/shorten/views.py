@@ -26,8 +26,23 @@ def transform_data_into_json(urls):
             'original_url': url.original_url,
             'mapped_url': 'http://127.0.0.1:8000/url/' + url.url_id
         })
-
     return json.dumps(data, indent=1)
+
+
+@csrf_exempt
+@require_POST
+def delete_url(request):
+    if 'Authorization' in request.headers:
+        token = request.headers['Authorization']
+        url_id = request.POST['short_url'].split("/")[-1]
+        try:
+            url = Urls.objects(url_id=url_id, token=token)
+            url.delete()
+            return HttpResponse("Url deleted")
+        except Urls.DoesNotExist:
+            return HttpResponse("No url found")
+    else:
+        return HttpResponse('Please sign in')
 
 
 @csrf_exempt
@@ -35,7 +50,6 @@ def transform_data_into_json(urls):
 def list_url(request):
     if 'Authorization' in request.headers:
         token = request.headers['Authorization']
-        print("="*10, token)
         try:
             urls = Urls.objects(token=token)
             return HttpResponse(transform_data_into_json(urls))
@@ -43,7 +57,6 @@ def list_url(request):
             return HttpResponse("No url found")
     else:
         return HttpResponse('Please sign in')
-
 
 
 @csrf_exempt
