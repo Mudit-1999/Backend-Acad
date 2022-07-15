@@ -16,6 +16,12 @@ import mongoengine
 
 mongoengine.connect("my_db")
 
+DATABASES = {
+    "default": {
+        "ENGINE": "django.db.backends.dummy",
+    }
+}
+
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -32,16 +38,6 @@ DEBUG = True
 ALLOWED_HOSTS = []
 
 
-DATABASES = {
-    "default": {
-        "ENGINE": "django.db.backends.dummy",
-    },
-}
-
-AUTHENTICATION_BACKENDS = (
-    'accounts.authenticate.MyBackend'
-)
-
 # Application definition
 
 INSTALLED_APPS = [
@@ -52,9 +48,17 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'accounts',
-    'short_url',
-    'rest_framework'
+    'shorten',
+    'rest_framework',
+    'rest_framework.authtoken',
+    'rest_auth',
 ]
+
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': [
+        'rest_framework.authentication.TokenAuthentication',
+    ]
+}
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',

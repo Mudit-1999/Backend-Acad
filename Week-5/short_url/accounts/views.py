@@ -1,21 +1,23 @@
 from django.shortcuts import render, redirect
 from django.contrib import messages
+from django.views.decorators.http import require_POST, require_GET
 from .models import User
-from django.contrib.auth import authenticate
+from django.views.decorators.csrf import csrf_exempt
+import hashlib
+from django.http import HttpResponse
 
 
-def signin(request):
-    if request.method == 'POST':
-        user_name = request.POST['username']
-        password = request.POST['password']
-        user = authenticate(request, user_name, password)
-        if user is None:
-            messages.info(request, "Invalid Credentials")
-            return redirect("login")
-        return redirect("/")
+def generate_hash(key: str) -> str:
+    return hashlib.sha256(key.encode('utf-8')).hexdigest()
 
-    else:
-        return render(request, "login.html")
+
+def validate(username: str = None, password: str = None) -> User:
+    try:
+        user = User.objects.get(user_name=username)
+        if user.password == password:
+            return user
+    except User.DoesNotExist:
+        return None
 
 
 def validate_new_user(user_name, email, password1, password2)-> str:
@@ -28,21 +30,47 @@ def validate_new_user(user_name, email, password1, password2)-> str:
     return "Successful"
 
 
-def register(request):
-
-    if request.method == 'POST':
-        email = request.POST['email']
-        user_name = request.POST['username']
-        password1 = request.POST['password1']
-        password2 = request.POST['password2']
-
-        response = validate_new_user(user_name, email, password1, password2)
-        if response != "Successful":
-            messages.info(request, response)
-            return redirect('register')
-
-        User(email=email, user_name=user_name, password=password1).save()
-        return redirect('login')
+@csrf_exempt
+@require_POST
+def delete_user(request):
+    if 'Authorization' in request.headers:
+        token = request.headers['Authorization']
     else:
-        return render(request, "register.html")
+        return HttpResponse("Please sign in first or pass token")
+
+    user = User.objects(token=token)
+    user.delete()
+    return HttpResponse("User Deleted\n Redirect to home page")
+
+
+@csrf_exempt
+@require_POST
+def signin(request):
+    user_name = request.POST['username']
+    password = generate_hash(request.POST['password'])
+    user = validate(user_name, password)
+    if user is None:
+        return HttpResponse("Invalid Credentials")
+    return HttpResponse(user.token)
+
+
+
+@csrf_exempt
+@require_POST
+def register(request):
+    print("="*10, request)
+    user_name = request.POST['username']
+    password1 = request.POST['password1']
+    password2 = request.POST['password2']
+    email = request.POST['email']
+    response = validate_new_user(user_name, email, password1, password2)
+    if response != "Successful":
+        messages.info(request, response)
+        return HttpResponse(response)
+
+    User(email=email, user_name=user_name, password=generate_hash(password1), token=generate_hash(user_name)).save()
+    return HttpResponse('Please login')
+
+
+
 
