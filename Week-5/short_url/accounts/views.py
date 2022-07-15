@@ -11,13 +11,13 @@ def generate_hash(key: str) -> str:
     return hashlib.sha256(key.encode('utf-8')).hexdigest()
 
 
-def validate(username: str = None, password: str = None) -> User:
+def validate(username: str = None, password: str = None) -> HttpResponse:
     try:
         user = User.objects.get(user_name=username)
         if user.password == password:
-            return user
+            return HttpResponse(user.token)
     except User.DoesNotExist:
-        return None
+        return HttpResponse("Invalid Credentials")
 
 
 def validate_new_user(user_name, email, password1, password2)-> str:
@@ -48,10 +48,7 @@ def delete_user(request):
 def signin(request):
     user_name = request.POST['username']
     password = generate_hash(request.POST['password'])
-    user = validate(user_name, password)
-    if user is None:
-        return HttpResponse("Invalid Credentials")
-    return HttpResponse(user.token)
+    return validate(user_name, password)
 
 
 
@@ -63,11 +60,10 @@ def register(request):
     password1 = request.POST['password1']
     password2 = request.POST['password2']
     email = request.POST['email']
+
     response = validate_new_user(user_name, email, password1, password2)
     if response != "Successful":
-        messages.info(request, response)
         return HttpResponse(response)
-
     User(email=email, user_name=user_name, password=generate_hash(password1), token=generate_hash(user_name)).save()
     return HttpResponse('Please login')
 
