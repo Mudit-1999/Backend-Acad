@@ -16,11 +16,11 @@ import mongoengine
 
 mongoengine.connect("my_db")
 
-DATABASES = {
-    "default": {
-        "ENGINE": "django.db.backends.dummy",
-    }
-}
+# DATABASES = {
+#     "default": {
+#         "ENGINE": "django.db.backends.dummy",
+#     }
+# }
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent

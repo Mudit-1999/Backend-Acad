@@ -1,4 +1,4 @@
-from django.http import HttpResponse
+from django.http import HttpResponse, Http404, HttpResponseBadRequest
 from django.shortcuts import render, redirect
 from django.contrib import messages
 import hashlib
@@ -8,16 +8,21 @@ from django.views.decorators.csrf import csrf_exempt
 from accounts.models import User
 import json
 import datetime
+from typing import Any
 
 
 # Create your views here.
-def get_new_alias(original_url:str, token:str, alias: str) ->str:
+def generate_hash(key: str) -> str:
+    return hashlib.sha256(key.encode('utf-8')).hexdigest()
+
+
+def get_new_alias(original_url: str, token: str, alias: str) ->str:
     if len(alias) == 0:
         return hashlib.sha1((original_url+token).encode('utf-8')).hexdigest()[:10]
     return alias
 
 
-def validate_token(token=None):
+def validate_token(token: str = None) -> Any:
     try:
         user = User.objects.get(token=token)
         return user
@@ -25,7 +30,7 @@ def validate_token(token=None):
         return None
 
 
-def transform_data_into_json(urls):
+def transform_data_into_json(urls: Urls) -> json:
     data = []
     for url in urls:
         data.append({
@@ -41,18 +46,19 @@ def handle_delete_url(token: str, url_id: str) -> HttpResponse:
         url.delete()
         return HttpResponse("Url deleted")
     except Urls.DoesNotExist:
-        return HttpResponse("No url found")
+        return HttpResponseBadRequest
 
 
-def handle_list_url(token:str) -> HttpResponse:
+def handle_list_url(token: str) -> HttpResponse:
     try:
         urls = Urls.objects(token=token)
         return HttpResponse(transform_data_into_json(urls))
     except Urls.DoesNotExist:
-        return HttpResponse("No url found")
+        return HttpResponseBadRequest
 
 
-def handle_shortening(original_url, alias, token, token_required):
+def handle_shortening(original_url: str, alias: str, token: str, token_required: bool):
+
     alias = get_new_alias(original_url=original_url, alias=alias, token=token)
     if Urls.objects(url_id=alias).limit(1).count():
         return HttpResponse("Alias already taken")
@@ -64,14 +70,14 @@ def handle_shortening(original_url, alias, token, token_required):
 def check_authorization(request, url: User) -> HttpResponse:
     if 'Authorization' not in request.headers:
         return HttpResponse("Please provide authorization token")
-    if url.token != request.headers['Authorization']:
+    if url.token != generate_hash(request.headers['Authorization']):
         return HttpResponse("Authorization token is wrong")
     return update_fields_and_send_response(url)
 
 
 def update_fields_and_send_response(url: User) -> HttpResponse:
     Urls.objects.get(url_id=url.url_id).update(visit_counts=url.visit_counts + 1, last_time_stamp=datetime.datetime.now)
-    return HttpResponse(url.original_url)
+    return redirect(url.original_url)
 
 
 @csrf_exempt
@@ -82,7 +88,7 @@ def redirect_to_original(request, url_id: str) -> HttpResponse:
             return check_authorization(request=request, url=url)
         return update_fields_and_send_response(url)
     except Urls.DoesNotExist:
-        return HttpResponse("<h2>Unable to find url to redirect.\n Please check the url you have entered</h2>")
+        raise Http404
 
 
 @csrf_exempt
@@ -90,7 +96,7 @@ def redirect_to_original(request, url_id: str) -> HttpResponse:
 def shorten_url(request):
     token = 'AU'
     if 'Authorization' in request.headers:
-        token = request.headers['Authorization']
+        token = generate_hash(request.headers['Authorization'])
     original_url = request.POST['original_url']
     alias = request.POST['alias']
     token_required = True if (request.POST['token_required'] == 'True' and token != 'AU') else False
@@ -102,7 +108,7 @@ def shorten_url(request):
 @require_POST
 def delete_url(request):
     if 'Authorization' in request.headers:
-        token = request.headers['Authorization']
+        token = generate_hash(request.headers['Authorization'])
         url_id = request.POST['short_url'].split("/")[-1]
         return handle_delete_url(token=token, url_id=url_id)
     else:
@@ -113,7 +119,7 @@ def delete_url(request):
 @require_POST
 def list_url(request):
     if 'Authorization' in request.headers:
-        token = request.headers['Authorization']
+        token = generate_hash(request.headers['Authorization'])
         return handle_list_url(token=token)
     else:
         return HttpResponse('Please sign in')

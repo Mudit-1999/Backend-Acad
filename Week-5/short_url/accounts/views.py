@@ -1,10 +1,12 @@
-from django.shortcuts import render, redirect
-from django.contrib import messages
+# from django.shortcuts import render, redirect
 from django.views.decorators.http import require_POST, require_GET
 from .models import User
 from django.views.decorators.csrf import csrf_exempt
 import hashlib
-from django.http import HttpResponse
+from django.http import HttpResponse, HttpResponseBadRequest
+
+
+fixed_string = "MUDIT"
 
 
 def generate_hash(key: str) -> str:
@@ -15,14 +17,13 @@ def validate(username: str = None, password: str = None) -> HttpResponse:
     try:
         user = User.objects.get(user_name=username)
         if user.password == password:
-            return HttpResponse(user.token)
+            return HttpResponse(generate_hash(username + fixed_string + password))
+        return HttpResponseBadRequest
     except User.DoesNotExist:
-        return HttpResponse("Invalid Credentials")
+        return HttpResponseBadRequest
 
 
-def validate_new_user(user_name, email, password1, password2)-> str:
-    if password1 != password2:
-        return "Password doesn't match"
+def validate_new_user(user_name: str, email: str)-> str:
     if User.objects(user_name=user_name).limit(1).count():
         return "Username already taken"
     if User.objects(email=email):
@@ -47,7 +48,7 @@ def delete_user(request):
 @require_POST
 def signin(request):
     user_name = request.POST['username']
-    password = generate_hash(request.POST['password'])
+    password = generate_hash(request.POST['password'] + fixed_string)
     return validate(user_name, password)
 
 
@@ -57,14 +58,18 @@ def signin(request):
 def register(request):
     print("="*10, request)
     user_name = request.POST['username']
-    password1 = request.POST['password1']
-    password2 = request.POST['password2']
+    password = request.POST['password']
     email = request.POST['email']
-
-    response = validate_new_user(user_name, email, password1, password2)
+    response = validate_new_user(user_name, email)
     if response != "Successful":
         return HttpResponse(response)
-    User(email=email, user_name=user_name, password=generate_hash(password1), token=generate_hash(user_name)).save()
+    User(
+        email=email,
+        user_name=user_name,
+        password=generate_hash(password + fixed_string),
+        token=generate_hash(generate_hash(user_name + fixed_string + password))
+    ).save()
+
     return HttpResponse('Please login')
 
 
